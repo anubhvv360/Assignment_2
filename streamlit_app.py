@@ -9,14 +9,6 @@ import tiktoken
 import re
 from pathlib import Path
 
-# Set the title and favicon that appear in the Browser's tab bar.
-st.set_page_config(
-    page_title='Assignment 2 - Anubhav',
-    page_icon=':book:',  # Use ':books:' for multiple books or ':robot_face:' for a robot
-)
-
-# -----------------------------------------------------------------------------
-
 
 # Display versions (optional)
 st.sidebar.markdown("### Library Versions")
