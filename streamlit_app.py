@@ -138,7 +138,7 @@ def display_swot_analysis(strengths, weaknesses, opportunities, threats):
         render_quadrant(threats, "Threats", "#FF9800")
 
 # Main Streamlit app
-st.set_page_config(page_title="SWOT Analysis", page_icon="📊")
+st.set_page_config(page_title="SWOT Analysis", page_icon=':book:')
 st.title("SWOT Analysis Application")
 st.write("Upload a text file or enter text below to generate SWOT Analysis:")
 
