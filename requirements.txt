@@ -1,6 +1,8 @@
-google-generativeai
 streamlit
+google-generativeai
 langchain
 langchain-google-genai
 tiktoken
 matplotlib
+numpy
+pdfminer.six
