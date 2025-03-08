@@ -1,6 +1,6 @@
-google-generativeai>=0.3.0
-streamlit>=1.29.0
-langchain>=0.1.0
-langchain-google-genai>=0.0.5
-tiktoken>=0.5.1
-matplotlib>=3.7.0
+google-generativeai
+streamlit
+langchain
+langchain-google-genai
+tiktoken
+matplotlib
