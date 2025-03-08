@@ -5,7 +5,7 @@
 import streamlit as st
 st.set_page_config(page_title="SWOT Analysis", page_icon="📊", layout="wide")
 
-# importing other necessary libraries
+# Importing other necessary libraries
 import os
 import google.generativeai as genai
 import langchain
@@ -22,19 +22,20 @@ import io
 from pdfminer.high_level import extract_text
 import numpy as np
 from matplotlib.colors import LinearSegmentedColormap
+import textwrap  # This is part of the Python standard library
 
-# 1. Application title and description
+# Application title and description
 st.title("SWOT Analysis Application")
 st.write("Upload a file (.txt or .pdf) or enter text below to generate SWOT Analysis:")
 
-# 2. Displaying versions of libraries in the sidebar
+# Displaying versions of libraries in the sidebar
 st.sidebar.markdown("### Library Versions")
 st.sidebar.markdown(f"google.generativeai: {genai.__version__}")
 st.sidebar.markdown(f"streamlit: {st.__version__}")
 st.sidebar.markdown(f"tiktoken: {tiktoken.__version__}")
 st.sidebar.markdown(f"langchain: {langchain.__version__}")
 
-# 3. Initialize token counters in session state
+# Initialize token counters in session state
 if 'tokens_consumed' not in st.session_state:
     st.session_state.tokens_consumed = 0
 if 'query_tokens' not in st.session_state:
@@ -42,7 +43,7 @@ if 'query_tokens' not in st.session_state:
 if 'response_tokens' not in st.session_state:
     st.session_state.response_tokens = 0
 
-# 4. Get API key from Streamlit secrets
+# Get API key from Streamlit secrets
 if 'GOOGLE_API_KEY' in st.secrets:
     api_key = st.secrets['GOOGLE_API_KEY']
     genai.configure(api_key=api_key)
@@ -50,10 +51,10 @@ else:
     st.error("API key not found in secrets. Please add GOOGLE_API_KEY to your Streamlit secrets.")
     st.stop()
 
-# 5. Example of using tiktoken for token counting
+# Example of using tiktoken for token counting
 encoder = tiktoken.get_encoding("cl100k_base")
 
-# 6. Initialize the Gemini AI model
+# Initialize the Gemini AI model
 @st.cache_resource
 def load_llm():
     return ChatGoogleGenerativeAI(
@@ -64,7 +65,7 @@ def load_llm():
 
 llm = load_llm()
 
-# 7. Enhanced prompt template for more comprehensive insights
+# Enhanced prompt template for more comprehensive insights
 prompt_template = """
 You are a world-class strategic business consultant at BCG with expertise in comprehensive company analysis.
 
@@ -138,20 +139,20 @@ Please ensure that the analysis is comprehensive, insightful, and directly relev
 # Create a PromptTemplate instance
 prompt = PromptTemplate(input_variables=["company_info"], template=prompt_template)
 
-# 8. Initialize the LLMChain with the prompt and LLM
+# Initialize the LLMChain with the prompt and LLM
 llm_chain = LLMChain(prompt=prompt, llm=llm)
 
 # Function for generating SWOT analysis
 def get_swot_analysis(company_info: str):
     return llm_chain.run(company_info)
 
-# 9. Function to extract text from PDF files
+# Function to extract text from PDF files
 def extract_text_from_pdf(pdf_file):
     pdf_bytes = pdf_file.read()
     text = extract_text(io.BytesIO(pdf_bytes))
     return text
 
-# 10. Helper functions for processing and displaying SWOT analysis
+# Helper functions for processing and displaying SWOT analysis
 def convert_md_bold_to_html(text: str) -> str:
     """Converts double-asterisk Markdown to HTML bold tags."""
     return re.sub(r"\*\*(.*?)\*\*", r"<b>\1</b>", text)
@@ -187,7 +188,6 @@ def parse_subheading_bullets(text: str):
 
 def display_swot_analysis_html(strengths, weaknesses, opportunities, threats):
     """HTML-based display for the SWOT quadrants."""
-
     def render_quadrant(content: str, title: str, color: str):
         st.markdown(
             f"""
@@ -219,16 +219,13 @@ def display_swot_analysis_html(strengths, weaknesses, opportunities, threats):
     with col4:
         render_quadrant(threats, "Threats", "#FF9800")
 
-
-# 11. NEW Matplotlib visualization function
-import textwrap
-
+# NEW Matplotlib visualization function
 def plot_swot_quadrants(strengths, weaknesses, opportunities, threats):
     """
     Creates a 2x2 subplot for Strengths, Weaknesses, Opportunities, and Threats.
-    Summarizes bullet points (truncates lines, removes HTML tags/headings).
+    Truncates bullet points and places text at the top-left of each subplot.
     """
-
+    # --- Helper: Clean & Summarize bullet points ---
     def clean_and_summarize(lines, max_points=5, max_line_length=100):
         """
         1. Remove HTML tags (<b> etc.)
@@ -237,7 +234,6 @@ def plot_swot_quadrants(strengths, weaknesses, opportunities, threats):
         4. Truncate each line to `max_line_length` characters
         """
         cleaned = []
-        # Patterns to remove headings like **Strengths:**
         heading_patterns = [r"\*\*Strengths:\*\*", r"\*\*Weaknesses:\*\*",
                             r"\*\*Opportunities:\*\*", r"\*\*Threats:\*\*"]
         for i, line in enumerate(lines):
@@ -255,84 +251,54 @@ def plot_swot_quadrants(strengths, weaknesses, opportunities, threats):
 
             cleaned.append(line.strip())
 
-        # Limit bullet points
         return cleaned[:max_points]
 
-    # Parse bullet points or fallback to raw text
+    # --- Convert each section into bullet points ---
     strength_points = parse_subheading_bullets(strengths) or [strengths.strip()]
     weakness_points = parse_subheading_bullets(weaknesses) or [weaknesses.strip()]
     opportunity_points = parse_subheading_bullets(opportunities) or [opportunities.strip()]
     threat_points = parse_subheading_bullets(threats) or [threats.strip()]
 
-    # Clean and summarize
+    # --- Clean and summarize for shorter display in the chart ---
     strength_points = clean_and_summarize(strength_points)
     weakness_points = clean_and_summarize(weakness_points)
     opportunity_points = clean_and_summarize(opportunity_points)
     threat_points = clean_and_summarize(threat_points)
 
-    # Combine each set of bullet points into a single string
+    # --- Combine bullet points into a single string per quadrant ---
     strength_text = "\n".join([f"• {pt}" for pt in strength_points])
     weakness_text = "\n".join([f"• {pt}" for pt in weakness_points])
     opportunity_text = "\n".join([f"• {pt}" for pt in opportunity_points])
     threat_text = "\n".join([f"• {pt}" for pt in threat_points])
 
-    # Create 2x2 subplots
-    fig, axs = plt.subplots(2, 2, figsize=(12, 8))
+    # --- Create a 2x2 grid of subplots ---
+    fig, axs = plt.subplots(2, 2, figsize=(12, 10))
     fig.suptitle("SWOT Analysis", fontsize=16, fontweight='bold', y=0.98)
 
-    # Top-left: Strengths
-    axs[0, 0].set_title("Strengths", color="#4CAF50", fontsize=14, fontweight='bold')
-    axs[0, 0].text(
-        0.5, 0.5,
-        strength_text,
-        ha='center',
-        va='center',
-        fontsize=10,
-        wrap=True
-    )
-    axs[0, 0].set_axis_off()
+    # --- Helper function to place text in each quadrant ---
+    def place_text(ax, title, color, bullet_text):
+        ax.set_title(title, color=color, fontsize=14, fontweight='bold')
+        # Place text at the top-left corner of the subplot
+        ax.text(
+            0.0, 1.0,
+            bullet_text,
+            ha='left', va='top',
+            fontsize=10,
+            wrap=True,
+            transform=ax.transAxes
+        )
+        ax.set_axis_off()
 
-    # Top-right: Weaknesses
-    axs[0, 1].set_title("Weaknesses", color="#F44336", fontsize=14, fontweight='bold')
-    axs[0, 1].text(
-        0.5, 0.5,
-        weakness_text,
-        ha='center',
-        va='center',
-        fontsize=10,
-        wrap=True
-    )
-    axs[0, 1].set_axis_off()
+    # --- Assign each quadrant ---
+    place_text(axs[0, 0], "Strengths", "#4CAF50", strength_text)
+    place_text(axs[0, 1], "Weaknesses", "#F44336", weakness_text)
+    place_text(axs[1, 0], "Opportunities", "#2196F3", opportunity_text)
+    place_text(axs[1, 1], "Threats", "#FF9800", threat_text)
 
-    # Bottom-left: Opportunities
-    axs[1, 0].set_title("Opportunities", color="#2196F3", fontsize=14, fontweight='bold')
-    axs[1, 0].text(
-        0.5, 0.5,
-        opportunity_text,
-        ha='center',
-        va='center',
-        fontsize=10,
-        wrap=True
-    )
-    axs[1, 0].set_axis_off()
-
-    # Bottom-right: Threats
-    axs[1, 1].set_title("Threats", color="#FF9800", fontsize=14, fontweight='bold')
-    axs[1, 1].text(
-        0.5, 0.5,
-        threat_text,
-        ha='center',
-        va='center',
-        fontsize=10,
-        wrap=True
-    )
-    axs[1, 1].set_axis_off()
-
-    # Show plot in Streamlit
+    # --- Render the figure in Streamlit ---
     st.pyplot(fig)
 
-
-# 12. Input options: File upload or text input
+# Input options: File upload or text input
 file_type = st.radio("Choose input method:", ["Upload File", "Enter Text"])
 text = None
 
@@ -358,7 +324,7 @@ else:
     if text_input:
         text = text_input
 
-# 13. Add a button to generate the SWOT analysis
+# Add a button to generate the SWOT analysis
 if st.button("Generate SWOT Analysis"):
     if text:
         # Generate and display the SWOT Analysis
@@ -416,7 +382,7 @@ if st.button("Generate SWOT Analysis"):
     else:
         st.info("Please upload a file or enter text to generate the SWOT analysis.")
 
-# 14. Display token usage in sidebar
+# Display token usage in sidebar
 st.sidebar.markdown("### Token Usage")
 st.sidebar.markdown(f"Total Tokens Consumed: {st.session_state.tokens_consumed}")
 st.sidebar.markdown(f"Query Tokens: {st.session_state.query_tokens}")
