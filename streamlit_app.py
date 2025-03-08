@@ -23,18 +23,18 @@ from pdfminer.high_level import extract_text
 import numpy as np
 from matplotlib.colors import LinearSegmentedColormap
 
-# Application title and description
+# 1. Application title and description
 st.title("SWOT Analysis Application")
 st.write("Upload a file (.txt or .pdf) or enter text below to generate SWOT Analysis:")
 
-# displaying versions of libraries in the sidebar
+# 2. Displaying versions of libraries in the sidebar
 st.sidebar.markdown("### Library Versions")
 st.sidebar.markdown(f"google.generativeai: {genai.__version__}")
 st.sidebar.markdown(f"streamlit: {st.__version__}")
 st.sidebar.markdown(f"tiktoken: {tiktoken.__version__}")
 st.sidebar.markdown(f"langchain: {langchain.__version__}")
 
-# Initialize token counters in session state
+# 3. Initialize token counters in session state
 if 'tokens_consumed' not in st.session_state:
     st.session_state.tokens_consumed = 0
 if 'query_tokens' not in st.session_state:
@@ -42,7 +42,7 @@ if 'query_tokens' not in st.session_state:
 if 'response_tokens' not in st.session_state:
     st.session_state.response_tokens = 0
 
-# Get API key from Streamlit secrets
+# 4. Get API key from Streamlit secrets
 if 'GOOGLE_API_KEY' in st.secrets:
     api_key = st.secrets['GOOGLE_API_KEY']
     genai.configure(api_key=api_key)
@@ -50,10 +50,10 @@ else:
     st.error("API key not found in secrets. Please add GOOGLE_API_KEY to your Streamlit secrets.")
     st.stop()
 
-# Example of using tiktoken for token counting
+# 5. Example of using tiktoken for token counting
 encoder = tiktoken.get_encoding("cl100k_base")
 
-# Initialize the Gemini AI model
+# 6. Initialize the Gemini AI model
 @st.cache_resource
 def load_llm():
     return ChatGoogleGenerativeAI(
@@ -64,7 +64,7 @@ def load_llm():
 
 llm = load_llm()
 
-# Enhanced prompt template for more comprehensive insights
+# 7. Enhanced prompt template for more comprehensive insights
 prompt_template = """
 You are a world-class strategic business consultant at BCG with expertise in comprehensive company analysis.
 
@@ -138,20 +138,20 @@ Please ensure that the analysis is comprehensive, insightful, and directly relev
 # Create a PromptTemplate instance
 prompt = PromptTemplate(input_variables=["company_info"], template=prompt_template)
 
-# Initialize the LLMChain with the prompt and LLM
+# 8. Initialize the LLMChain with the prompt and LLM
 llm_chain = LLMChain(prompt=prompt, llm=llm)
 
 # Function for generating SWOT analysis
 def get_swot_analysis(company_info: str):
     return llm_chain.run(company_info)
 
-# Function to extract text from PDF files
+# 9. Function to extract text from PDF files
 def extract_text_from_pdf(pdf_file):
     pdf_bytes = pdf_file.read()
     text = extract_text(io.BytesIO(pdf_bytes))
     return text
 
-# Helper functions for processing and displaying SWOT analysis
+# 10. Helper functions for processing and displaying SWOT analysis
 def convert_md_bold_to_html(text: str) -> str:
     """Converts double-asterisk Markdown to HTML bold tags."""
     return re.sub(r"\*\*(.*?)\*\*", r"<b>\1</b>", text)
@@ -161,7 +161,10 @@ def remove_single_asterisks(text: str) -> str:
     return re.sub(r"^\*\s+", "", text, flags=re.MULTILINE)
 
 def parse_subheading_bullets(text: str):
-    """Finds lines that begin with '* ' or '- ', then cleans and returns them."""
+    """
+    Finds lines that begin with '* ' or '- ', then cleans and returns them.
+    Also handles lines in the format: '* Something: Explanation'
+    """
     lines = re.findall(r"^(?:\*|-)\s+(.*?)(?:\s*:\s*|\s*-\s*|\s*–\s*)(.*)", text, flags=re.MULTILINE)
     if not lines:
         # Try simpler pattern if the more complex one fails
@@ -182,8 +185,9 @@ def parse_subheading_bullets(text: str):
             bullet_points.append(line.strip())
         return bullet_points
 
-# HTML display function for SWOT quadrants
 def display_swot_analysis_html(strengths, weaknesses, opportunities, threats):
+    """HTML-based display for the SWOT quadrants."""
+
     def render_quadrant(content: str, title: str, color: str):
         st.markdown(
             f"""
@@ -215,99 +219,125 @@ def display_swot_analysis_html(strengths, weaknesses, opportunities, threats):
     with col4:
         render_quadrant(threats, "Threats", "#FF9800")
 
-# Matplotlib visualization for SWOT quadrants
+
+# 11. NEW Matplotlib visualization function
+import textwrap
+
 def plot_swot_quadrants(strengths, weaknesses, opportunities, threats):
-    # Create figure and axis
-    fig, ax = plt.subplots(figsize=(10, 8))
-    
-    # Remove axis ticks and spines
-    ax.set_xticks([])
-    ax.set_yticks([])
-    for spine in ax.spines.values():
-        spine.set_visible(False)
-    
-    # Split the plot into quadrants
-    ax.axhline(y=0.5, color='black', linestyle='-', alpha=0.7)
-    ax.axvline(x=0.5, color='black', linestyle='-', alpha=0.7)
-    
-    # Define colors for each quadrant
-    colors = ['#4CAF50', '#F44336', '#2196F3', '#FF9800']
-    
-    # Parse bullet points for each quadrant
+    """
+    Creates a 2x2 subplot for Strengths, Weaknesses, Opportunities, and Threats.
+    Summarizes bullet points (truncates lines, removes HTML tags/headings).
+    """
+
+    def clean_and_summarize(lines, max_points=5, max_line_length=100):
+        """
+        1. Remove HTML tags (<b> etc.)
+        2. Remove references to headings like **Strengths:** if any
+        3. Limit bullet points to `max_points`
+        4. Truncate each line to `max_line_length` characters
+        """
+        cleaned = []
+        # Patterns to remove headings like **Strengths:**
+        heading_patterns = [r"\*\*Strengths:\*\*", r"\*\*Weaknesses:\*\*",
+                            r"\*\*Opportunities:\*\*", r"\*\*Threats:\*\*"]
+        for i, line in enumerate(lines):
+            # Remove HTML tags
+            line = re.sub(r"</?b>", "", line)
+            line = re.sub(r"<.*?>", "", line)
+
+            # Remove heading patterns
+            for pattern in heading_patterns:
+                line = re.sub(pattern, "", line, flags=re.IGNORECASE)
+
+            # Truncate if too long
+            if len(line) > max_line_length:
+                line = line[:max_line_length].rstrip() + "..."
+
+            cleaned.append(line.strip())
+
+        # Limit bullet points
+        return cleaned[:max_points]
+
+    # Parse bullet points or fallback to raw text
     strength_points = parse_subheading_bullets(strengths) or [strengths.strip()]
     weakness_points = parse_subheading_bullets(weaknesses) or [weaknesses.strip()]
     opportunity_points = parse_subheading_bullets(opportunities) or [opportunities.strip()]
     threat_points = parse_subheading_bullets(threats) or [threats.strip()]
-    
-    # Limit to 5 points per quadrant for readability
-    max_points = 5
-    
-    # Add quadrant titles and bullet points
-    # Strengths (top-left)
-    ax.text(0.25, 0.95, 'STRENGTHS', horizontalalignment='center', 
-            fontsize=12, fontweight='bold', color='white',
-            bbox=dict(facecolor=colors[0], alpha=0.8, boxstyle='round,pad=0.5'))
-    
-    for i, point in enumerate(strength_points[:max_points]):
-        ax.text(0.05, 0.85 - i*0.06, f"• {point[:60]}{'...' if len(point) > 60 else ''}", 
-                fontsize=8, wrap=True)
-    
-    # Weaknesses (top-right)
-    ax.text(0.75, 0.95, 'WEAKNESSES', horizontalalignment='center', 
-            fontsize=12, fontweight='bold', color='white',
-            bbox=dict(facecolor=colors[1], alpha=0.8, boxstyle='round,pad=0.5'))
-    
-    for i, point in enumerate(weakness_points[:max_points]):
-        ax.text(0.55, 0.85 - i*0.06, f"• {point[:60]}{'...' if len(point) > 60 else ''}", 
-                fontsize=8, wrap=True)
-    
-    # Opportunities (bottom-left)
-    ax.text(0.25, 0.45, 'OPPORTUNITIES', horizontalalignment='center', 
-            fontsize=12, fontweight='bold', color='white',
-            bbox=dict(facecolor=colors[2], alpha=0.8, boxstyle='round,pad=0.5'))
-    
-    for i, point in enumerate(opportunity_points[:max_points]):
-        ax.text(0.05, 0.35 - i*0.06, f"• {point[:60]}{'...' if len(point) > 60 else ''}", 
-                fontsize=8, wrap=True)
-    
-    # Threats (bottom-right)
-    ax.text(0.75, 0.45, 'THREATS', horizontalalignment='center', 
-            fontsize=12, fontweight='bold', color='white',
-            bbox=dict(facecolor=colors[3], alpha=0.8, boxstyle='round,pad=0.5'))
-    
-    for i, point in enumerate(threat_points[:max_points]):
-        ax.text(0.55, 0.35 - i*0.06, f"• {point[:60]}{'...' if len(point) > 60 else ''}", 
-                fontsize=8, wrap=True)
-    
-    # Add light color backgrounds to each quadrant
-    rect1 = plt.Rectangle((0, 0.5), 0.5, 0.5, color=colors[0], alpha=0.1)
-    rect2 = plt.Rectangle((0.5, 0.5), 0.5, 0.5, color=colors[1], alpha=0.1)
-    rect3 = plt.Rectangle((0, 0), 0.5, 0.5, color=colors[2], alpha=0.1)
-    rect4 = plt.Rectangle((0.5, 0), 0.5, 0.5, color=colors[3], alpha=0.1)
-    
-    ax.add_patch(rect1)
-    ax.add_patch(rect2)
-    ax.add_patch(rect3)
-    ax.add_patch(rect4)
-    
-    # Set the title
-    plt.title("SWOT Analysis", fontsize=16, fontweight='bold', pad=20)
-    
-    # Set axis limits
-    plt.xlim(0, 1)
-    plt.ylim(0, 1)
-    
+
+    # Clean and summarize
+    strength_points = clean_and_summarize(strength_points)
+    weakness_points = clean_and_summarize(weakness_points)
+    opportunity_points = clean_and_summarize(opportunity_points)
+    threat_points = clean_and_summarize(threat_points)
+
+    # Combine each set of bullet points into a single string
+    strength_text = "\n".join([f"• {pt}" for pt in strength_points])
+    weakness_text = "\n".join([f"• {pt}" for pt in weakness_points])
+    opportunity_text = "\n".join([f"• {pt}" for pt in opportunity_points])
+    threat_text = "\n".join([f"• {pt}" for pt in threat_points])
+
+    # Create 2x2 subplots
+    fig, axs = plt.subplots(2, 2, figsize=(12, 8))
+    fig.suptitle("SWOT Analysis", fontsize=16, fontweight='bold', y=0.98)
+
+    # Top-left: Strengths
+    axs[0, 0].set_title("Strengths", color="#4CAF50", fontsize=14, fontweight='bold')
+    axs[0, 0].text(
+        0.5, 0.5,
+        strength_text,
+        ha='center',
+        va='center',
+        fontsize=10,
+        wrap=True
+    )
+    axs[0, 0].set_axis_off()
+
+    # Top-right: Weaknesses
+    axs[0, 1].set_title("Weaknesses", color="#F44336", fontsize=14, fontweight='bold')
+    axs[0, 1].text(
+        0.5, 0.5,
+        weakness_text,
+        ha='center',
+        va='center',
+        fontsize=10,
+        wrap=True
+    )
+    axs[0, 1].set_axis_off()
+
+    # Bottom-left: Opportunities
+    axs[1, 0].set_title("Opportunities", color="#2196F3", fontsize=14, fontweight='bold')
+    axs[1, 0].text(
+        0.5, 0.5,
+        opportunity_text,
+        ha='center',
+        va='center',
+        fontsize=10,
+        wrap=True
+    )
+    axs[1, 0].set_axis_off()
+
+    # Bottom-right: Threats
+    axs[1, 1].set_title("Threats", color="#FF9800", fontsize=14, fontweight='bold')
+    axs[1, 1].text(
+        0.5, 0.5,
+        threat_text,
+        ha='center',
+        va='center',
+        fontsize=10,
+        wrap=True
+    )
+    axs[1, 1].set_axis_off()
+
     # Show plot in Streamlit
     st.pyplot(fig)
 
-# Input options: File upload or text input
-file_type = st.radio("Choose input method:", ["Upload File", "Enter Text"])
 
+# 12. Input options: File upload or text input
+file_type = st.radio("Choose input method:", ["Upload File", "Enter Text"])
 text = None
 
 if file_type == "Upload File":
     uploaded_file = st.file_uploader("Choose a file", type=["txt", "pdf"])
-    
     if uploaded_file is not None:
         # Process based on file type
         if uploaded_file.type == "application/pdf":
@@ -328,26 +358,26 @@ else:
     if text_input:
         text = text_input
 
-# Add a button to generate the SWOT analysis
+# 13. Add a button to generate the SWOT analysis
 if st.button("Generate SWOT Analysis"):
     if text:
         # Generate and display the SWOT Analysis
         with st.spinner('Generating SWOT Analysis... This may take a minute.'):
             swot_output = get_swot_analysis(text)
-        
+
         # Count tokens
         query_tokens = len(encoder.encode(text))
         response_tokens = len(encoder.encode(swot_output))
-        
+
         # Update token counts in session state
         st.session_state.query_tokens += query_tokens
         st.session_state.response_tokens += response_tokens
         st.session_state.tokens_consumed += (query_tokens + response_tokens)
-        
+
         # Parse the SWOT output
         sections = ["Strengths", "Weaknesses", "Opportunities", "Threats"]
         swot_blocks = {s: "" for s in sections}
-    
+
         # Regex pattern to match each section until the next section or end of string
         for section in sections:
             pattern = rf"\*\*{section}:\*\*\s*((?:(?!\*\*(?:Strengths|Weaknesses|Opportunities|Threats):\*\*).)*)"
@@ -356,11 +386,11 @@ if st.button("Generate SWOT Analysis"):
                 swot_blocks[section] = match.group(1).strip()
             else:
                 swot_blocks[section] = ""
-        
+
         # Display results with tabs for different visualizations
         st.subheader("SWOT Analysis Results")
         tabs = st.tabs(["HTML Visualization", "Matplotlib Visualization", "Raw Output"])
-        
+
         with tabs[0]:
             # Display the SWOT quadrants using HTML
             display_swot_analysis_html(
@@ -369,7 +399,7 @@ if st.button("Generate SWOT Analysis"):
                 swot_blocks["Opportunities"],
                 swot_blocks["Threats"]
             )
-        
+
         with tabs[1]:
             # Display the SWOT quadrants using Matplotlib
             plot_swot_quadrants(
@@ -378,15 +408,15 @@ if st.button("Generate SWOT Analysis"):
                 swot_blocks["Opportunities"],
                 swot_blocks["Threats"]
             )
-        
+
         with tabs[2]:
             # Show raw output
             st.markdown(swot_output)
-            
+
     else:
         st.info("Please upload a file or enter text to generate the SWOT analysis.")
 
-# Display token usage in sidebar
+# 14. Display token usage in sidebar
 st.sidebar.markdown("### Token Usage")
 st.sidebar.markdown(f"Total Tokens Consumed: {st.session_state.tokens_consumed}")
 st.sidebar.markdown(f"Query Tokens: {st.session_state.query_tokens}")
