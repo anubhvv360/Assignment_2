@@ -7,8 +7,6 @@ from langchain.prompts import PromptTemplate
 from langchain.chains import LLMChain
 import tiktoken
 import re
-from pathlib import Path
-
 
 # Display versions (optional)
 st.sidebar.markdown("### Library Versions")
@@ -48,12 +46,12 @@ llm = load_llm()
 
 # SWOT analysis prompt template
 prompt_template = """
-You are a senior consultant at McKinsey, an expert at analyzing companies.
-You specialize in presenting a detailed SWOT analysis for a company based on the information provided below.
+You are a senior consultant at BCG who is expert at analyzing companies.
+I would appreciate your expertise in presenting a detailed SWOT analysis for a company based on the information provided below.
 Here is the information that should be considered:
 {company_info}
 
-Please ensure, the analysis is clear, concise, and highlights the most important factors for each quadrant.
+Please ensure that the analysis is clear, concise, and highlights the most important factors for each quadrant.
 Please provide a SWOT analysis in the following format:
 **Strengths:**
 - [Strength 1]
@@ -138,7 +136,7 @@ def display_swot_analysis(strengths, weaknesses, opportunities, threats):
         render_quadrant(threats, "Threats", "#FF9800")
 
 # Main Streamlit app
-st.set_page_config(page_title="SWOT Analysis", page_icon=':book:')
+st.set_page_config(page_title="SWOT Analysis", page_icon="📊")
 st.title("SWOT Analysis Application")
 st.write("Upload a text file or enter text below to generate SWOT Analysis:")
 
