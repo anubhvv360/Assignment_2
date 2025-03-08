@@ -1,151 +1,213 @@
+import os
+import google.generativeai as genai
 import streamlit as st
-import pandas as pd
-import math
+import langchain
+from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain.prompts import PromptTemplate
+from langchain.chains import LLMChain
+import tiktoken
+import re
 from pathlib import Path
 
 # Set the title and favicon that appear in the Browser's tab bar.
 st.set_page_config(
-    page_title='GDP dashboard',
-    page_icon=':earth_americas:', # This is an emoji shortcode. Could be a URL too.
+    page_title='Assignment 2 - Anubhav',
+    page_icon=':book:',  # Use ':books:' for multiple books or ':robot_face:' for a robot
 )
 
 # -----------------------------------------------------------------------------
-# Declare some useful functions.
 
-@st.cache_data
-def get_gdp_data():
-    """Grab GDP data from a CSV file.
 
-    This uses caching to avoid having to read the file every time. If we were
-    reading from an HTTP endpoint instead of a file, it's a good idea to set
-    a maximum age to the cache with the TTL argument: @st.cache_data(ttl='1d')
-    """
+# Display versions (optional)
+st.sidebar.markdown("### Library Versions")
+st.sidebar.markdown(f"google.generativeai: {genai.__version__}")
+st.sidebar.markdown(f"streamlit: {st.__version__}")
+st.sidebar.markdown(f"langchain: {langchain.__version__}")
 
-    # Instead of a CSV on disk, you could read from an HTTP endpoint here too.
-    DATA_FILENAME = Path(__file__).parent/'data/gdp_data.csv'
-    raw_gdp_df = pd.read_csv(DATA_FILENAME)
+# Initialize token counters in session state
+if 'tokens_consumed' not in st.session_state:
+    st.session_state.tokens_consumed = 0
+if 'query_tokens' not in st.session_state:
+    st.session_state.query_tokens = 0
+if 'response_tokens' not in st.session_state:
+    st.session_state.response_tokens = 0
 
-    MIN_YEAR = 1960
-    MAX_YEAR = 2022
+# Get API key from Streamlit secrets
+if 'GOOGLE_API_KEY' in st.secrets:
+    api_key = st.secrets['GOOGLE_API_KEY']
+    genai.configure(api_key=api_key)
+else:
+    st.error("API key not found in secrets. Please add GOOGLE_API_KEY to your Streamlit secrets.")
+    st.stop()
 
-    # The data above has columns like:
-    # - Country Name
-    # - Country Code
-    # - [Stuff I don't care about]
-    # - GDP for 1960
-    # - GDP for 1961
-    # - GDP for 1962
-    # - ...
-    # - GDP for 2022
-    #
-    # ...but I want this instead:
-    # - Country Name
-    # - Country Code
-    # - Year
-    # - GDP
-    #
-    # So let's pivot all those year-columns into two: Year and GDP
-    gdp_df = raw_gdp_df.melt(
-        ['Country Code'],
-        [str(x) for x in range(MIN_YEAR, MAX_YEAR + 1)],
-        'Year',
-        'GDP',
+# Initialize tiktoken encoder for token counting
+encoder = tiktoken.get_encoding("cl100k_base")
+
+# Initialize the Gemini AI model
+@st.cache_resource
+def load_llm():
+    return ChatGoogleGenerativeAI(
+        model="gemini-1.5-pro-latest",
+        temperature=0.7,
+        max_tokens=8000
     )
 
-    # Convert years from string to integers
-    gdp_df['Year'] = pd.to_numeric(gdp_df['Year'])
+llm = load_llm()
 
-    return gdp_df
+# SWOT analysis prompt template
+prompt_template = """
+You are a senior consultant at McKinsey, an expert at analyzing companies.
+You specialize in presenting a detailed SWOT analysis for a company based on the information provided below.
+Here is the information that should be considered:
+{company_info}
 
-gdp_df = get_gdp_data()
+Please ensure, the analysis is clear, concise, and highlights the most important factors for each quadrant.
+Please provide a SWOT analysis in the following format:
+**Strengths:**
+- [Strength 1]
+- [Strength 2]
+...
 
-# -----------------------------------------------------------------------------
-# Draw the actual page
+**Weaknesses:**
+- [Weakness 1]
+- [Weakness 2]
+...
 
-# Set the title that appears at the top of the page.
-'''
-# :earth_americas: GDP dashboard
+**Opportunities:**
+- [Opportunity 1]
+- [Opportunity 2]
+...
 
-Browse GDP data from the [World Bank Open Data](https://data.worldbank.org/) website. As you'll
-notice, the data only goes to 2022 right now, and datapoints for certain years are often missing.
-But it's otherwise a great (and did I mention _free_?) source of data.
-'''
+**Threats:**
+- [Threat 1]
+- [Threat 2]
+...
+"""
 
-# Add some spacing
-''
-''
+# Create a PromptTemplate instance
+prompt = PromptTemplate(input_variables=["company_info"], template=prompt_template)
 
-min_value = gdp_df['Year'].min()
-max_value = gdp_df['Year'].max()
+# Initialize the LLMChain with the prompt and LLM
+llm_chain = LLMChain(prompt=prompt, llm=llm)
 
-from_year, to_year = st.slider(
-    'Which years are you interested in?',
-    min_value=min_value,
-    max_value=max_value,
-    value=[min_value, max_value])
+# Function for generating SWOT analysis
+def get_swot_analysis(company_info: str):
+    return llm_chain.run(company_info)
 
-countries = gdp_df['Country Code'].unique()
+# Helper functions for processing and displaying SWOT analysis
+def convert_md_bold_to_html(text: str) -> str:
+    """Converts double-asterisk Markdown to HTML bold tags."""
+    return re.sub(r"\*\*(.*?)\*\*", r"<b>\1</b>", text)
 
-if not len(countries):
-    st.warning("Select at least one country")
+def remove_single_asterisks(text: str) -> str:
+    """Removes single asterisks followed by a space."""
+    return re.sub(r"^\*\s+", "", text, flags=re.MULTILINE)
 
-selected_countries = st.multiselect(
-    'Which countries would you like to view?',
-    countries,
-    ['DEU', 'FRA', 'GBR', 'BRA', 'MEX', 'JPN'])
+def parse_subheading_bullets(text: str):
+    """Finds lines that begin with '* ' or '- ', then cleans and returns them."""
+    lines = re.findall(r"^(?:\*|-)\s+(.*)", text, flags=re.MULTILINE)
+    bullet_points = []
+    for line in lines:
+        line = convert_md_bold_to_html(line)
+        line = remove_single_asterisks(line)
+        bullet_points.append(line.strip())
+    return bullet_points
 
-''
-''
-''
-
-# Filter the data
-filtered_gdp_df = gdp_df[
-    (gdp_df['Country Code'].isin(selected_countries))
-    & (gdp_df['Year'] <= to_year)
-    & (from_year <= gdp_df['Year'])
-]
-
-st.header('GDP over time', divider='gray')
-
-''
-
-st.line_chart(
-    filtered_gdp_df,
-    x='Year',
-    y='GDP',
-    color='Country Code',
-)
-
-''
-''
-
-
-first_year = gdp_df[gdp_df['Year'] == from_year]
-last_year = gdp_df[gdp_df['Year'] == to_year]
-
-st.header(f'GDP in {to_year}', divider='gray')
-
-''
-
-cols = st.columns(4)
-
-for i, country in enumerate(selected_countries):
-    col = cols[i % len(cols)]
-
-    with col:
-        first_gdp = first_year[first_year['Country Code'] == country]['GDP'].iat[0] / 1000000000
-        last_gdp = last_year[last_year['Country Code'] == country]['GDP'].iat[0] / 1000000000
-
-        if math.isnan(first_gdp):
-            growth = 'n/a'
-            delta_color = 'off'
-        else:
-            growth = f'{last_gdp / first_gdp:,.2f}x'
-            delta_color = 'normal'
-
-        st.metric(
-            label=f'{country} GDP',
-            value=f'{last_gdp:,.0f}B',
-            delta=growth,
-            delta_color=delta_color
+def display_swot_analysis(strengths, weaknesses, opportunities, threats):
+    def render_quadrant(content: str, title: str, color: str):
+        st.markdown(
+            f"""
+            <div style="background-color:{color}; padding: 10px; border-radius: 10px;">
+                <h3 style="color:white;">{title}</h3>
+                <ul style="color:white;">
+            """,
+            unsafe_allow_html=True
         )
+
+        bullet_lines = parse_subheading_bullets(content)
+        if not bullet_lines:
+            bullet_lines = [content.strip()]
+
+        for line in bullet_lines:
+            st.markdown(f"<li>{line}</li>", unsafe_allow_html=True)
+
+        st.markdown("</ul></div>", unsafe_allow_html=True)
+
+    col1, col2 = st.columns(2)
+    with col1:
+        render_quadrant(strengths, "Strengths", "#4CAF50")
+    with col2:
+        render_quadrant(weaknesses, "Weaknesses", "#F44336")
+
+    col3, col4 = st.columns(2)
+    with col3:
+        render_quadrant(opportunities, "Opportunities", "#2196F3")
+    with col4:
+        render_quadrant(threats, "Threats", "#FF9800")
+
+# Main Streamlit app
+st.set_page_config(page_title="SWOT Analysis", page_icon="📊")
+st.title("SWOT Analysis Application")
+st.write("Upload a text file or enter text below to generate SWOT Analysis:")
+
+# File uploader
+uploaded_file = st.file_uploader("Choose a text file", type=["txt"])
+
+# Text input
+text_input = st.text_area("Or enter text directly:")
+
+# Process the text
+if uploaded_file is not None:
+    text = uploaded_file.read().decode("utf-8")
+elif text_input:
+    text = text_input
+else:
+    text = None
+
+query_tokens = 0
+response_tokens = 0
+
+if st.button("Generate SWOT Analysis"):
+    if text:
+        # Generate and display the SWOT Analysis
+        st.subheader("Output")
+        with st.spinner('Generating SWOT Analysis...'):
+            swot_output = get_swot_analysis(text)
+        
+        sections = ["Strengths", "Weaknesses", "Opportunities", "Threats"]
+        swot_blocks = {s: "" for s in sections}
+    
+        # Regex pattern to match each section until the next section or end of string
+        for section in sections:
+            pattern = rf"\*\*{section}:\*\*\s*((?:(?!\*\*(?:Strengths|Weaknesses|Opportunities|Threats):\*\*).)*)"
+            match = re.search(pattern, swot_output, re.DOTALL)
+            if match:
+                swot_blocks[section] = match.group(1).strip()
+            else:
+                swot_blocks[section] = ""
+    
+        # Display the SWOT quadrants
+        st.title('SWOT Analysis Results')
+        display_swot_analysis(
+            swot_blocks["Strengths"],
+            swot_blocks["Weaknesses"],
+            swot_blocks["Opportunities"],
+            swot_blocks["Threats"]
+        )
+        
+        # Count tokens
+        query_tokens = len(encoder.encode(text))
+        response_tokens = len(encoder.encode(swot_output))
+        
+        # Update token counts in session state
+        st.session_state.query_tokens += query_tokens
+        st.session_state.response_tokens += response_tokens
+        st.session_state.tokens_consumed += (query_tokens + response_tokens)
+    else:
+        st.info("Please upload a file or enter text to generate the SWOT analysis.")
+
+# Display token usage in sidebar
+st.sidebar.markdown("### Token Usage")
+st.sidebar.markdown(f"Total Tokens Consumed: {st.session_state.tokens_consumed}")
+st.sidebar.markdown(f"Query Tokens: {st.session_state.query_tokens}")
+st.sidebar.markdown(f"Response Tokens: {st.session_state.response_tokens}")
