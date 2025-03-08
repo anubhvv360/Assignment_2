@@ -6,3 +6,4 @@ tiktoken
 matplotlib
 numpy
 pdfminer.six
+plotly
