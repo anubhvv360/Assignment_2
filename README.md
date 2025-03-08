@@ -1,17 +1,13 @@
-# Assignment 2
-
-A simple Streamlit app showing the GDP of different countries in the world.
-
-[![Open in Streamlit](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://swotanalysis.streamlit.app/)
-
 # SWOT Analysis Application
 
 This is a Streamlit application that generates SWOT (Strengths, Weaknesses, Opportunities, Threats) analyses for companies using Google's Gemini AI model.
 
+[![Open in Streamlit](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://swotanalysis.streamlit.app/)
+
 ## Features
 
 - Upload text files or enter text directly to analyze a company
-- Beautiful visualization of SWOT analysis in four quadrants
+- Beautiful visualization of SWOT analysis
 - Token usage tracking
 - Responsive design
 
