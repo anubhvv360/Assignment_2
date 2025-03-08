@@ -1,4 +1,4 @@
-# SWOT Analysis Application
+# SWOT Analysis Agent
 
 This is a Streamlit application that generates SWOT (Strengths, Weaknesses, Opportunities, Threats) analyses for companies using Google's Gemini AI model.
 
