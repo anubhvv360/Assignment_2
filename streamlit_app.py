@@ -253,3 +253,15 @@ if st.sidebar.button("Reset Token Counters"):
     st.session_state.query_tokens = 0
     st.session_state.response_tokens = 0
     st.sidebar.success("Token counters reset.")
+
+# Footer for Credits
+st.markdown("""---""")
+st.markdown(
+    """
+    <div style="background: linear-gradient(to right, blue, purple); padding: 15px; border-radius: 10px; text-align: center; margin-top: 20px; color: white;">
+        Made by Anubhav Verma<br>
+        Please reach out to anubhav.verma360@gmail.com if you encounter any issues.
+    </div>
+    """, 
+    unsafe_allow_html=True
+)
