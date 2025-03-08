@@ -1,10 +1,13 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# importing necessary libraries
+# Set page config as the first Streamlit command
+import streamlit as st
+st.set_page_config(page_title="SWOT Analysis", page_icon="📊", layout="wide")
+
+# importing other necessary libraries
 import os
 import google.generativeai as genai
-import streamlit as st
 import langchain
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain.prompts import PromptTemplate
@@ -19,6 +22,10 @@ import io
 from pdfminer.high_level import extract_text
 import numpy as np
 from matplotlib.colors import LinearSegmentedColormap
+
+# Application title and description
+st.title("SWOT Analysis Application")
+st.write("Upload a file (.txt or .pdf) or enter text below to generate SWOT Analysis:")
 
 # displaying versions of libraries in the sidebar
 st.sidebar.markdown("### Library Versions")
@@ -292,11 +299,6 @@ def plot_swot_quadrants(strengths, weaknesses, opportunities, threats):
     
     # Show plot in Streamlit
     st.pyplot(fig)
-
-# Main Streamlit app
-st.set_page_config(page_title="SWOT Analysis", page_icon="📊", layout="wide")
-st.title("SWOT Analysis Application")
-st.write("Upload a file (.txt or .pdf) or enter text below to generate SWOT Analysis:")
 
 # Input options: File upload or text input
 file_type = st.radio("Choose input method:", ["Upload File", "Enter Text"])
