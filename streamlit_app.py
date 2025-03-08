@@ -20,20 +20,6 @@ import re
 import io
 from pdfminer.high_level import extract_text
 
-#Hiding github logo
-st.markdown(
-    """
-    <style>
-    .css-1jc7ptx, .e1ewe7hr3, .viewerBadge_container__1QSob,
-    .styles_viewerBadge__1yB5_, .viewerBadge_link__1S137,
-    .viewerBadge_text__1JaDK {
-        display: none;
-    }
-    </style>
-    """,
-    unsafe_allow_html=True
-)
-
 # Application title and description
 st.title("🔍 SWOT Analysis Agent")
 st.write("Upload a file (.txt or .pdf) or enter text below to generate a SWOT Analysis:")
