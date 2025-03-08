@@ -1,18 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-#Hiding github logo
-st.markdown(
-    """
-    <style>
-    .css-1jc7ptx, .e1ewe7hr3, .viewerBadge_container__1QSob,
-    .styles_viewerBadge__1yB5_, .viewerBadge_link__1S137,
-    .viewerBadge_text__1JaDK {
-        display: none;
-    }
-    </style>
-    """,
-    unsafe_allow_html=True
-)
+
 # Set page config as the first Streamlit command
 import streamlit as st
 st.set_page_config(page_title="SWOT Analysis Agent", page_icon="📊", layout="wide")
@@ -31,6 +19,20 @@ import tiktoken
 import re
 import io
 from pdfminer.high_level import extract_text
+
+#Hiding github logo
+st.markdown(
+    """
+    <style>
+    .css-1jc7ptx, .e1ewe7hr3, .viewerBadge_container__1QSob,
+    .styles_viewerBadge__1yB5_, .viewerBadge_link__1S137,
+    .viewerBadge_text__1JaDK {
+        display: none;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
 
 # Application title and description
 st.title("🔍 SWOT Analysis Agent")
