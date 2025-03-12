@@ -23,7 +23,7 @@ from pdfminer.high_level import extract_text
 # Application title and description
 st.title("🔍 SWOT Analysis Agent")
 st.write("Upload a file (.txt or .pdf) or enter text below to generate a SWOT Analysis:")
-st.caption("The objective of this Agent is to conduct internal and external analysis using the SWOT framework, upon giving an input regarding a company.")
+st.caption("The objective of this LLM-based Agent is to conduct comprehensive internal and external analyses of a given company using the SWOT framework, delivering a structured output that highlights strengths, weaknesses, opportunities, and threats.")
 
 
 # Display library versions in the sidebar
