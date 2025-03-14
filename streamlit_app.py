@@ -298,7 +298,7 @@ if st.sidebar.button("Reset App"):
 
 # Displaying name and email id on the sidebar
 st.sidebar.markdown(
-    f"Got feedback? Feel free to reach out at: [📧](mailto:anubhav.ft251021@greatlakes.edu.in) 😊", 
+    f"Got feedback? Feel free to reach out at: [📧](mailto:anubhav.ft251021@greatlakes.edu.in)", 
     unsafe_allow_html=True
 )
 
@@ -307,9 +307,32 @@ st.markdown("""---""")
 st.markdown(
     """
     <div style="background: linear-gradient(to right, blue, purple); padding: 15px; border-radius: 10px; text-align: center; margin-top: 20px; color: white;">
-        Made by Anubhav Verma<br>
-        Please reach out to anubhav.verma360@gmail.com if you encounter any issues.
+        Made by Anubhav Verma
     </div>
     """, 
     unsafe_allow_html=True
 )
+###
+<style>
+@keyframes gradientAnimation {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+.animated-gradient {
+    background: linear-gradient(90deg, blue, purple, red, orange);
+    background-size: 300% 300%;
+    animation: gradientAnimation 15s ease infinite;
+    padding: 15px;
+    border-radius: 10px;
+    text-align: center;
+    margin-top: 20px;
+    color: white;
+}
+</style>
+
+<div class="animated-gradient">
+    Made by Anubhav Verma
+</div>
+
