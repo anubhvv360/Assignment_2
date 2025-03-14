@@ -313,26 +313,33 @@ st.markdown(
     unsafe_allow_html=True
 )
 ###
-<style>
-@keyframes gradientAnimation {
-    0% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-    100% { background-position: 0% 50%; }
-}
+st.markdown(
+    """
+    <style>
+    @keyframes gradientAnimation {
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+    }
 
-.animated-gradient {
-    background: linear-gradient(90deg, blue, purple, red, orange);
-    background-size: 300% 300%;
-    animation: gradientAnimation 15s ease infinite;
-    padding: 15px;
-    border-radius: 10px;
-    text-align: center;
-    margin-top: 20px;
-    color: white;
-}
-</style>
+    .animated-gradient {
+        background: linear-gradient(90deg, blue, purple, red, orange);
+        background-size: 300% 300%;
+        animation: gradientAnimation 15s ease infinite;
+        padding: 15px;
+        border-radius: 10px;
+        text-align: center;
+        margin-top: 20px;
+        color: white;
+        font-weight: bold;
+        font-size: 18px;
+    }
+    </style>
 
-<div class="animated-gradient">
-    Made by Anubhav Verma
-</div>
+    <div class="animated-gradient">
+        Made by Anubhav Verma
+    </div>
+    """,
+    unsafe_allow_html=True
+)
 
