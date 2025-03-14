@@ -45,6 +45,22 @@ st.title("🔍 SWOT Analysis Agent")
 st.write("Upload a file (.txt or .pdf) or enter text below to generate a SWOT Analysis:")
 st.caption("The objective of this LLM-based Agent is to conduct comprehensive internal and external analyses of a given company using the SWOT framework, delivering a structured output that highlights strengths, weaknesses, opportunities, and threats.")
 
+# Sidebar Configuration
+st.sidebar.title("ℹ️ About This App")
+st.sidebar.markdown(
+    """
+    This **LLM-powered AI Agent** conducts a **comprehensive SWOT analysis** of a given company.  
+    By evaluating **Strengths, Weaknesses, Opportunities, and Threats**, it provides a **structured and insightful assessment** to support **strategic decision-making**. 🚀  
+
+    🔍 **Key Features:**  
+    - AI-driven **SWOT analysis** for companies  
+    - Structured insights to highlight **competitive advantages & risks**  
+    - Helps in **strategic planning & market positioning**  
+
+    Enter the company details and let the AI agent do the rest! 🎯  
+    """
+)
+
 # Display library versions in the sidebar
 st.sidebar.markdown("### Library Versions")
 st.sidebar.markdown(f"google.generativeai: {genai.__version__}")
