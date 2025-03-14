@@ -62,9 +62,9 @@ st.sidebar.markdown(
 )
 
 # Display library versions in the sidebar
-st.sidebar.markdown("### Library Versions")
-st.sidebar.markdown(f"google.generativeai: {genai.__version__}")
+st.sidebar.title("📦 Library Versions")
 st.sidebar.markdown(f"streamlit: {st.__version__}")
+st.sidebar.markdown(f"google.generativeai: {genai.__version__}")
 st.sidebar.markdown(f"tiktoken: {tiktoken.__version__}")
 st.sidebar.markdown(f"langchain: {langchain.__version__}")
 
