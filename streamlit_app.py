@@ -293,7 +293,7 @@ if st.sidebar.button("Reset Token Counters"):
 
 # Easter Egg
 # Button to trigger the balloon animation
-if st.sidebar.button("Reset App"):
+if st.sidebar.button("Easter Egg"):
     st.balloons()
 
 # Displaying name and email id on the sidebar
