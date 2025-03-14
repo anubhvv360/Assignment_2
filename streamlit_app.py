@@ -275,6 +275,11 @@ if st.sidebar.button("Reset Token Counters"):
     st.session_state.response_tokens = 0
     st.sidebar.success("Token counters reset.")
 
+# Easter Egg
+# Button to trigger the balloon animation
+if st.button("Easter Egg"):
+    st.balloons()
+
 # Footer for Credits
 st.markdown("""---""")
 st.markdown(
