@@ -277,7 +277,7 @@ if st.sidebar.button("Reset Token Counters"):
 
 # Easter Egg
 # Button to trigger the balloon animation
-if st.button("Easter Egg"):
+if st.sidebar.button("Easter Egg"):
     st.balloons()
 
 # Footer for Credits
