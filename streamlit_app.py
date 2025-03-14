@@ -1,30 +1,49 @@
 #!/usr/bin/env python
 # coding: utf-8
 
+# ### SWOT Analysis Agent ###
+
+# ### Anubhav Verma - FT251021 ###
+
+# Installing Streamlit library for building interactive web applications
+#!pip install streamlit
+
+# Installing google-generativeai library used to interact with Google's Gen AI model
+#!pip install google-generativeai
+
+# Installing langchain-google-genai library to integrate Google's Gen AI model with LangChain
+#!pip install langchain-google-genai
+
+# Installing required library to extract text from pdf files
+#!pip install PDF Miner
+
+# importing necessary libraries
+
 # Set page config as the first Streamlit command
 import streamlit as st
 st.set_page_config(page_title="SWOT Analysis Agent", page_icon="📊", layout="wide")
 
 # Import necessary libraries
-import os
-import google.generativeai as genai
-import langchain
-from langchain_google_genai import ChatGoogleGenerativeAI
-from langchain.prompts import PromptTemplate
-from langchain.chains import LLMChain
-from langchain.text_splitter import CharacterTextSplitter
-from langchain.docstore.document import Document
-from langchain.chains.summarize import load_summarize_chain
-import tiktoken
-import re
-import io
-from pdfminer.high_level import extract_text
+import os  # To access and manage environment variables
+import google.generativeai as genai  # Google Generative AI library for interacting with Gemini API
+import langchain  # LangChain framework for working with LLMs
+
+from langchain_google_genai import ChatGoogleGenerativeAI  # LangChain wrapper for Google Gemini models
+from langchain.prompts import PromptTemplate  # Utility to structure prompts for LLMs
+from langchain.chains import LLMChain  # Chains together multiple LLM calls for processing
+from langchain.text_splitter import CharacterTextSplitter  # Splits long texts into smaller chunks for better processing
+from langchain.docstore.document import Document  # Represents a document in LangChain
+from langchain.chains.summarize import load_summarize_chain  # Prebuilt chain for text summarization using LLMs
+
+import tiktoken  # Tokenizer for estimating token usage in LLMs
+import re  # Regular expressions for text processing and pattern matching
+import io  # In-memory file operations for handling text streams
+from pdfminer.high_level import extract_text  # Extracts text content from PDFs
 
 # Application title and description
 st.title("🔍 SWOT Analysis Agent")
 st.write("Upload a file (.txt or .pdf) or enter text below to generate a SWOT Analysis:")
 st.caption("The objective of this LLM-based Agent is to conduct comprehensive internal and external analyses of a given company using the SWOT framework, delivering a structured output that highlights strengths, weaknesses, opportunities, and threats.")
-
 
 # Display library versions in the sidebar
 st.sidebar.markdown("### Library Versions")
@@ -43,7 +62,7 @@ if 'response_tokens' not in st.session_state:
 
 # Get API key from Streamlit secrets
 if 'GOOGLE_API_KEY' in st.secrets:
-    api_key = st.secrets['GOOGLE_API_KEY']
+    api_key = os.environ.get("GOOGLE_API_KEY") #
     genai.configure(api_key=api_key)
 else:
     st.error("API key not found in secrets. Please add GOOGLE_API_KEY to your Streamlit secrets.")
