@@ -313,9 +313,9 @@ st.markdown(
     }
 
     .animated-gradient {
-        background: linear-gradient(90deg, blue, purple, red, blue);
+        background: linear-gradient(90deg, blue, purple, red, purple, blue);
         background-size: 300% 300%;
-        animation: gradientAnimation 6s ease infinite;
+        animation: gradientAnimation 8s ease infinite;
         padding: 15px;
         border-radius: 10px;
         text-align: center;
