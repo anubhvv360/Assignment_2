@@ -296,6 +296,12 @@ if st.sidebar.button("Reset Token Counters"):
 if st.sidebar.button("Reset App"):
     st.balloons()
 
+# Displaying name and email id on the sidebar
+st.sidebar.markdown(
+    f"Got feedback? Feel free to reach out at: [📧](mailto:anubhav.ft251021@greatlakes.edu.in) 😊", 
+    unsafe_allow_html=True
+)
+
 # Footer for Credits
 st.markdown("""---""")
 st.markdown(
