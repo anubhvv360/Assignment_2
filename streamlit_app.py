@@ -303,16 +303,6 @@ st.sidebar.markdown(
 )
 
 # Footer for Credits
-st.markdown("""---""")
-st.markdown(
-    """
-    <div style="background: linear-gradient(to right, blue, purple); padding: 15px; border-radius: 10px; text-align: center; margin-top: 20px; color: white;">
-        Made by Anubhav Verma
-    </div>
-    """, 
-    unsafe_allow_html=True
-)
-###
 st.markdown(
     """
     <style>
@@ -325,7 +315,7 @@ st.markdown(
     .animated-gradient {
         background: linear-gradient(90deg, blue, purple, red, orange);
         background-size: 300% 300%;
-        animation: gradientAnimation 5s ease infinite;
+        animation: gradientAnimation 6s ease infinite;
         padding: 15px;
         border-radius: 10px;
         text-align: center;
@@ -342,4 +332,3 @@ st.markdown(
     """,
     unsafe_allow_html=True
 )
-
