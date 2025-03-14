@@ -325,13 +325,13 @@ st.markdown(
     .animated-gradient {
         background: linear-gradient(90deg, blue, purple, red, orange);
         background-size: 300% 300%;
-        animation: gradientAnimation 15s ease infinite;
+        animation: gradientAnimation 5s ease infinite;
         padding: 15px;
         border-radius: 10px;
         text-align: center;
         margin-top: 20px;
         color: white;
-        font-weight: bold;
+        font-weight: normal;
         font-size: 18px;
     }
     </style>
