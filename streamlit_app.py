@@ -17,8 +17,6 @@
 # Installing required library to extract text from pdf files
 #!pip install PDF Miner
 
-# importing necessary libraries
-
 # Set page config as the first Streamlit command
 import streamlit as st
 st.set_page_config(page_title="SWOT Analysis Agent", page_icon="📊", layout="wide")
